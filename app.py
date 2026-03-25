@@ -1,29 +1,26 @@
 from flask import Flask, render_template, request, jsonify
 from pymongo import MongoClient
+import json, os
 
-app = Flask(__name__)
-
+app = Flask(_name_)
 client = MongoClient("mongodb://localhost:27017/")
-db = client["todoapp"]
+db = client["todo_db"]
+collection = db["todos"]
 
 @app.route('/')
-def home():
+def index():
     return render_template('index.html')
 
 @app.route('/api')
 def api():
-    data = {"message": "Hello from API", "status": "success"}
-    return jsonify(data)
+    with open('data/api_data.json') as f:
+        return jsonify(json.load(f))
 
 @app.route('/submittodoitem', methods=['POST'])
 def submit_todo():
-    item_name = request.form.get('itemName')
-    item_description = request.form.get('itemDescription')
-    db.todos.insert_one({
-        "itemName": item_name,
-        "itemDescription": item_description
-    })
-    return jsonify({"message": "Item saved!", "status": "success"})
+    data = request.json
+    collection.insert_one({"itemName": data.get('itemName'), "itemDescription": data.get('itemDescription')})
+    return jsonify({"message": "Saved!"}), 201
 
-if __name__ == '__main__':
+if _name_ == '_main_':
     app.run(debug=True)
